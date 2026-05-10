@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --color-natural-bg: #F8F7F4;
+  --color-natural-ink: #3A3530;
+  --color-natural-olive: #5A5A40;
+  --color-natural-stone: #D4D0C8;
+}
+
+@layer base {
+  body {
+    @apply bg-natural-bg text-natural-ink antialiased;
+  }
+}
+
+.natural-card {
+  @apply bg-white/50 backdrop-blur-sm border border-stone-200 rounded-[32px] shadow-sm transition-all duration-500;
+}
+
+.label-micro {
+  @apply text-[10px] uppercase tracking-widest font-bold text-stone-400;
+}
+
+.btn-primary {
+  @apply bg-natural-ink text-white px-8 py-4 rounded-2xl font-medium tracking-wide transition-all hover:bg-[#1A1816] active:scale-95 disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply border border-stone-200 text-stone-500 px-8 py-4 rounded-2xl font-medium tracking-wide transition-all hover:border-natural-ink hover:text-natural-ink active:scale-95;
+}
+
+.natural-input {
+  @apply w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-natural-olive transition-all placeholder:text-stone-300;
+}

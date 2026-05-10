@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "StrategySession": {
+      "title": "Strategy Session",
+      "description": "Stores user inputs from the vibe check and the results of the ideation and scripting phases.",
+      "type": "object",
+      "properties": {
+        "niche": { "type": "string", "description": "The content niche (e.g., tech, wellness)." },
+        "audience": { "type": "string", "description": "The target audience." },
+        "format": { "type": "string", "description": "The content format (e.g., faceless, voiceover)." },
+        "goal": { "type": "string", "description": "The content goal (e.g., viral, educational)." },
+        "ideas": { "type": "array", "description": "List of 5 generated content ideas." },
+        "selectedIdea": { "type": "string", "description": "The idea selected by the user." },
+        "email": { "type": "string", "description": "The user's email address.", "format": "email" },
+        "feedback": { "type": "integer", "description": "User feedback rating (1-5 star).", "enum": [1, 2, 3, 4, 5] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of session creation." }
+      },
+      "required": ["niche", "audience", "format", "goal", "createdAt"]
+    }
+  },
+  "firestore": {
+    "sessions": {
+      "schema": "StrategySession",
+      "description": "Collection of all AI content strategy sessions."
+    }
+  }
+}
