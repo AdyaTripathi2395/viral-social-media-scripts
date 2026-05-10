@@ -286,7 +286,8 @@ function AdminLogin({ onSuccess, onBack }: { onSuccess: () => void, onBack: () =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'vibes2026') {
+    const adminPass = (import.meta as any).env.VITE_ADMIN_PASSWORD || 'vibes2026';
+    if (username === 'admin' && password === adminPass) {
       onSuccess();
     } else {
       setError('Invalid credentials. Access denied.');

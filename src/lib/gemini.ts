@@ -22,7 +22,7 @@ export interface ScriptSuite {
 }
 
 const getAI = (userKey?: string) => {
-  const key = userKey || process.env.GEMINI_API_KEY || '';
+  const key = userKey || (import.meta as any).env.VITE_GEMINI_API_KEY || (process.env as any).GEMINI_API_KEY || '';
   return new GoogleGenAI({ apiKey: key });
 };
 

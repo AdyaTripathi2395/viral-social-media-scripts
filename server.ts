@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Admin Password (in a real app, this would be an env var)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'vibes2026';
+const ADMIN_PASSWORD = process.env.VITE_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'vibes2026';
 
 // API route for admin authentication
 app.post('/api/admin/auth', (req, res) => {
