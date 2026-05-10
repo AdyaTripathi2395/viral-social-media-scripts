@@ -1,14 +1,12 @@
 {
   "name": "react-example",
-  "homepage": "https://adyatripathi2395.github.io/vibe-script",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3000 --host=0.0.0.0",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
+    "dev": "tsx server.ts",
     "build": "vite build",
+    "start": "node dist/server.js",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
