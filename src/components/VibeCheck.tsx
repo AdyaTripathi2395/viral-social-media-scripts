@@ -113,7 +113,13 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
       } catch (err: any) {
         console.error("Failed to generate ideas:", err);
         const errorMessage = err.message || "Unknown error";
-        setError(`The strategy nexus is offline (${errorMessage}). Please check your connection or API key.`);
+        const isQuotaError = errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('quota');
+        
+        if (isQuotaError) {
+          setError("Shared strategy limit reached. Please use 'Developer Mode' (top right) with your own API key to continue immediately.");
+        } else {
+          setError(`The strategy nexus is offline (${errorMessage.substring(0, 50)}...). Please check your connection or API key.`);
+        }
       } finally {
         setIsLoading(false);
       }

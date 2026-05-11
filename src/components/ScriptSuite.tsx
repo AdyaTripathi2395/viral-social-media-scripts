@@ -75,7 +75,14 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
         }
       } catch (err: any) {
         console.error("Failed to generate scripts:", err);
-        setError("Drafting failed. The creative engine encountered a glitch.");
+        const errorMessage = err.message || "Unknown error";
+        const isQuotaError = errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('quota');
+        
+        if (isQuotaError) {
+          setError("Shared limit reached. Please use 'Developer Mode' (top right) with your own API key to bypass this.");
+        } else {
+          setError("Drafting failed. The creative engine encountered a glitch.");
+        }
       } finally {
         setIsLoading(false);
       }
