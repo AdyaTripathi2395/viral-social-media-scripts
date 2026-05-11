@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Key, ExternalLink } from 'lucide-react';
+import { X, Key, ExternalLink, Info } from 'lucide-react';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -37,7 +37,19 @@ export function Settings({ isOpen, onClose, apiKey, onSave }: SettingsProps) {
               <div className="w-10 h-10 bg-natural-olive/10 rounded-full flex items-center justify-center">
                 <Key className="w-5 h-5 text-natural-olive" />
               </div>
-              <h3 className="text-xl font-medium">Developer Mode</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-xl font-medium">Developer Mode</h3>
+                <div className="relative group/help">
+                  <div className="p-1.5 rounded-full bg-stone-50 text-stone-300 transition-colors group-hover/help:text-natural-olive cursor-help">
+                    <Info className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-white border border-stone-100 rounded-xl shadow-2xl opacity-0 invisible group-hover/help:opacity-100 group-hover/help:visible transition-all z-50 pointer-events-none">
+                    <p className="text-[11px] text-stone-500 leading-relaxed italic font-sans not-italic">
+                      Bring Your Own Key (BYOK) mode uses your personal Gemini API key for generation. This ensures higher reliability, follows your personal usage quota, and keeps your strategy history private.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-8">

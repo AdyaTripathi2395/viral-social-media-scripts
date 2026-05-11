@@ -20,6 +20,7 @@ export default function App() {
   const [step, setStep] = useState<Step>('vibe-check');
   const [showHero, setShowHero] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [vibeStep, setVibeStep] = useState(0);
   const [inputs, setInputs] = useState({ niche: '', audience: '', onCamera: '', contentFormat: '', goal: '' });
   const [logoClicks, setLogoClicks] = useState(0);
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
@@ -175,7 +176,16 @@ export default function App() {
                     exit={{ opacity: 0, scale: 1.02 }}
                     transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
                   >
-                    <VibeCheck onComplete={handleVibeComplete} userApiKey={userApiKey} />
+                    <VibeCheck 
+                      onComplete={handleVibeComplete} 
+                      userApiKey={userApiKey}
+                      initialStep={vibeStep}
+                      initialAnswers={inputs}
+                      onStateChange={(step, answers) => {
+                        setVibeStep(step);
+                        setInputs(answers);
+                      }}
+                    />
                   </motion.div>
                 )}
                 {step === 'ideas' && (

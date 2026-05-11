@@ -7,19 +7,32 @@ import { ProgressBar } from './ProgressBar';
 interface VibeCheckProps {
   onComplete: (inputs: any, ideas: ContentIdea[]) => void;
   userApiKey?: string;
+  initialStep?: number;
+  initialAnswers?: any;
+  onStateChange?: (step: number, answers: any) => void;
 }
 
-export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnswers, onStateChange }: VibeCheckProps) {
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [isLoading, setIsLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [answers, setAnswers] = useState({
+  const [answers, setAnswers] = useState(initialAnswers || {
     niche: '',
     audience: '',
     onCamera: '',
     contentFormat: '',
     goal: '',
   });
+
+  const updateAnswers = (newAnswers: any) => {
+    setAnswers(newAnswers);
+    onStateChange?.(currentStep, newAnswers);
+  };
+
+  const updateStep = (newStep: number, overriddenAnswers?: any) => {
+    setCurrentStep(newStep);
+    onStateChange?.(newStep, overriddenAnswers || answers);
+  };
 
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +44,22 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
   }, [cooldown]);
 
   const steps = [
+    {
+      id: 'contentFormat',
+      question: "Content Format?",
+      type: 'select',
+      options: ['Reel/Short', 'Static Post', 'Story', 'Carousel'],
+      description: "Select the primary medium for this strategy.",
+      help: "Reels for reach, Carousels for depth."
+    },
+    {
+      id: 'onCamera',
+      question: "On-Camera Style?",
+      placeholder: "e.g., Faceless, Talking Head",
+      description: "How do you prefer to show up on screen?",
+      help: "Faceless/B-roll or Face-to-camera?",
+      condition: (ans: any) => ans.contentFormat === 'Reel/Short' || ans.contentFormat === 'Story'
+    },
     {
       id: 'niche',
       question: "What's your content niche?",
@@ -46,21 +75,6 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
       help: "Who is this for? e.g., Small biz owners."
     },
     {
-      id: 'onCamera',
-      question: "On-Camera Style?",
-      placeholder: "e.g., Faceless, Talking Head",
-      description: "How do you prefer to show up on screen?",
-      help: "Faceless/B-roll or Face-to-camera?"
-    },
-    {
-      id: 'contentFormat',
-      question: "Content Format?",
-      type: 'select',
-      options: ['Reel/Short', 'Static Post', 'Story', 'Carousel'],
-      description: "Select the primary medium for this strategy.",
-      help: "Reels for reach, Carousels for depth."
-    },
-    {
       id: 'goal',
       question: "What's the energy today?",
       placeholder: "e.g., Viral, Educational",
@@ -69,31 +83,54 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
     }
   ];
 
-  const handleNext = async () => {
-    if (currentStep < steps.length - 1) {
+  const handleNext = async (overriddenAnswers?: any) => {
+    const currentAnswers = overriddenAnswers || answers;
+    let nextStep = currentStep + 1;
+    
+    // Skip conditional steps if needed
+    while (nextStep < steps.length && steps[nextStep].condition && !steps[nextStep].condition(currentAnswers)) {
+      nextStep++;
+    }
+
+    if (nextStep < steps.length) {
       setError(null);
-      setCurrentStep(currentStep + 1);
+      updateStep(nextStep, currentAnswers);
     } else {
       if (cooldown > 0) return;
       setIsLoading(true);
       setError(null);
       try {
         const ideas = await generateContentIdeas(
-          answers.niche,
-          answers.audience,
-          answers.onCamera,
-          answers.contentFormat,
-          answers.goal,
+          currentAnswers.niche,
+          currentAnswers.audience,
+          currentAnswers.onCamera,
+          currentAnswers.contentFormat,
+          currentAnswers.goal,
           userApiKey
         );
         setCooldown(30);
-        onComplete(answers, ideas);
+        onComplete(currentAnswers, ideas);
       } catch (err: any) {
         console.error("Failed to generate ideas:", err);
-        setError("The strategy nexus is offline. Please check your connection or API key.");
+        const errorMessage = err.message || "Unknown error";
+        setError(`The strategy nexus is offline (${errorMessage}). Please check your connection or API key.`);
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const handleBack = () => {
+    let prevStep = currentStep - 1;
+    
+    // Skip conditional steps if needed
+    while (prevStep >= 0 && steps[prevStep].condition && !steps[prevStep].condition(answers)) {
+      prevStep--;
+    }
+
+    if (prevStep >= 0) {
+      setError(null);
+      updateStep(prevStep);
     }
   };
 
@@ -120,25 +157,38 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
           transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
           className="natural-card p-12 bg-white/40 border-stone-100/50 shadow-sm"
         >
-          <div className="space-y-4 mb-10">
-            <div className="flex items-center gap-3">
-              <h2 className="text-4xl font-light tracking-tight text-natural-ink italic font-serif">
-                {steps[currentStep].question}
-              </h2>
-              <div className="relative group/help">
-                <div className="p-1.5 rounded-full bg-stone-50 text-stone-300 transition-colors group-hover/help:text-natural-olive cursor-help">
-                  <Info className="w-3.5 h-3.5" />
-                </div>
-                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-white border border-stone-100 rounded-xl shadow-2xl opacity-0 invisible group-hover/help:opacity-100 group-hover/help:visible transition-all z-50 pointer-events-none">
-                  <p className="text-[11px] text-stone-500 leading-relaxed italic font-sans not-italic">
-                    {steps[currentStep].help}
-                  </p>
+          <div className="flex justify-between items-center mb-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-4xl font-light tracking-tight text-natural-ink italic font-serif">
+                    {steps[currentStep].question}
+                  </h2>
+                  <div className="relative group/help">
+                    <div className="p-1.5 rounded-full bg-stone-50 text-stone-300 transition-colors group-hover/help:text-natural-olive cursor-help">
+                      <Info className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-white border border-stone-100 rounded-xl shadow-2xl opacity-0 invisible group-hover/help:opacity-100 group-hover/help:visible transition-all z-50 pointer-events-none">
+                      <p className="text-[11px] text-stone-500 leading-relaxed italic font-sans not-italic">
+                        {steps[currentStep].help}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
+              <p className="text-stone-500 text-sm leading-relaxed">
+                {steps[currentStep].description}
+              </p>
             </div>
-            <p className="text-stone-500 text-sm leading-relaxed">
-              {steps[currentStep].description}
-            </p>
+            {currentStep > 0 && (
+              <button
+                onClick={handleBack}
+                className="text-stone-400 hover:text-natural-ink transition-colors text-[10px] uppercase tracking-widest font-bold flex items-center gap-1"
+              >
+                <ArrowRight className="w-3 h-3 rotate-180" />
+                Back
+              </button>
+            )}
           </div>
 
           <div className="relative group">
@@ -148,8 +198,9 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
                   <button
                     key={opt}
                     onClick={() => {
-                      setAnswers({ ...answers, [steps[currentStep].id]: opt });
-                      setTimeout(handleNext, 300);
+                      const newAnswers = { ...answers, [steps[currentStep].id]: opt };
+                      updateAnswers(newAnswers);
+                      setTimeout(() => handleNext(newAnswers), 300);
                     }}
                     className={`py-6 px-4 rounded-2xl border text-sm font-medium transition-all ${
                       answers[steps[currentStep].id as keyof typeof answers] === opt
@@ -167,7 +218,7 @@ export function VibeCheck({ onComplete, userApiKey }: VibeCheckProps) {
                   autoFocus
                   type="text"
                   value={answers[steps[currentStep].id as keyof typeof answers]}
-                  onChange={(e) => setAnswers({ ...answers, [steps[currentStep].id]: e.target.value })}
+                  onChange={(e) => updateAnswers({ ...answers, [steps[currentStep].id]: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && isCurrentStepValid && handleNext()}
                   placeholder={steps[currentStep].placeholder}
                   className="w-full bg-transparent border-b border-stone-200 py-6 text-2xl font-light outline-none focus:border-natural-olive transition-all placeholder:text-stone-200"

@@ -22,7 +22,10 @@ export interface ScriptSuite {
 }
 
 const getAI = (userKey?: string) => {
-  const key = userKey || (import.meta as any).env.VITE_GEMINI_API_KEY || (process.env as any).GEMINI_API_KEY || '';
+  const key = userKey || process.env.GEMINI_API_KEY || (import.meta as any).env.VITE_GEMINI_API_KEY || '';
+  if (!key) {
+    console.warn('No Gemini API key found. API calls will likely fail.');
+  }
   return new GoogleGenAI({ apiKey: key });
 };
 
@@ -40,7 +43,7 @@ export async function generateContentIdeas(
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a content strategist. Always output valid JSON strictly matching the provided schema.",
@@ -148,7 +151,7 @@ export async function generateScripts(
     };
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         systemInstruction: "You are a professional script writer. Output a JSON object with 'standard', 'storyteller', and 'viral' keys containing structured script data.",
