@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, ArrowLeft, Loader2, Star, CheckCircle2, Download, Send, Copy, Check, ArrowRight } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, Star, CheckCircle2, Download, Send, Copy, Check, ArrowRight, Waves } from 'lucide-react';
 import { generateScripts, ScriptSuite as ScriptSuiteType, ContentIdea, ScriptContent } from '../lib/gemini';
 import { logToGoogleSheets } from '../lib/backend';
 import { ProgressBar } from './ProgressBar';
@@ -49,7 +49,16 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
       setIsLoading(true);
       setError(null);
       try {
-        const generated = await generateScripts(idea.title, idea.description, inputs.contentFormat, inputs.onCamera, userApiKey);
+        const generated = await generateScripts(
+          idea.title, 
+          idea.description, 
+          inputs.platform, 
+          inputs.topic, 
+          inputs.goal, 
+          inputs.tone, 
+          inputs.length, 
+          userApiKey
+        );
         setSuite(generated);
         
         // Save to history only on new generation
@@ -88,7 +97,7 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
       }
     }
     fetchScripts();
-  }, [idea, inputs.contentFormat, userApiKey, initialSuite, isArchive]);
+  }, [idea, inputs.platform, userApiKey, initialSuite, isArchive]);
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,12 +178,12 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
     if (!suite) return;
     
     const formatScript = (label: string, content: ScriptContent) => {
-      const isCarousel = inputs.contentFormat === 'Carousel';
-      const isStatic = inputs.contentFormat === 'Static Post';
+      const isLongForm = inputs.platform?.includes('YouTube (long-form)') || inputs.platform?.includes('Podcast');
+      const isShort = inputs.platform?.includes('Shorts') || inputs.platform?.includes('TikTok') || inputs.platform?.includes('Reels');
       
-      const hookLabel = isCarousel ? 'COVER SLIDE' : isStatic ? 'HEADLINE' : 'THE HOOK';
-      const meatLabel = isCarousel ? 'SLIDE BREAKDOWN' : isStatic ? 'THE CAPTION' : 'THE MEAT';
-      const visualsLabel = isCarousel ? 'VISUAL STYLE' : isStatic ? 'PHOTO COMPOSITION' : 'VISUAL CUES';
+      const hookLabel = isShort ? 'THE HOOK' : isLongForm ? 'INTRO SCENE' : 'HEADLINE';
+      const meatLabel = isLongForm ? 'SCRIPT BODY' : 'THE CORE';
+      const visualsLabel = 'VISUAL CUES';
 
       return `
     --------------------------------------------------
@@ -224,38 +233,63 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 gap-8">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-          className="relative w-24 h-24"
-        >
-          <div className="absolute inset-0 border-t-2 border-natural-olive rounded-full opacity-20" />
-          <div className="absolute inset-2 border-r-2 border-natural-olive rounded-full opacity-40" />
-          <div className="absolute inset-4 border-b-2 border-natural-olive rounded-full opacity-60" />
+      <div className="flex flex-col items-center justify-center py-40 gap-12 text-center">
+        <div className="relative w-24 h-24">
+          <motion.div 
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.1, 1],
+              borderRadius: ["20%", "50%", "20%"]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 border-2 border-natural-olive/10"
+          />
+          <motion.div 
+            animate={{ 
+              rotate: -360,
+              scale: [1, 1.2, 1],
+              borderRadius: ["50%", "20%", "50%"]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-2 border border-natural-olive/30"
+          />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-natural-olive" />
-          </div>
-        </motion.div>
-        
-        <div className="text-center space-y-2">
-          <AnimatePresence mode="wait">
-            <motion.p 
-              key={loadingMessageIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="text-stone-400 font-medium tracking-wide uppercase text-[10px]"
+            <motion.div
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
-              {loadingMessages[loadingMessageIndex]}
-            </motion.p>
-          </AnimatePresence>
-          <div className="flex gap-1 justify-center">
-            {[0, 1, 2, 3, 4].map(i => (
+              <Waves className="w-10 h-10 text-natural-olive" />
+            </motion.div>
+          </div>
+        </div>
+        
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <AnimatePresence mode="wait">
+              <motion.p 
+                key={loadingMessageIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                transition={{ duration: 0.8 }}
+                className="text-2xl font-serif italic text-natural-ink"
+              >
+                {loadingMessages[loadingMessageIndex]}
+              </motion.p>
+            </AnimatePresence>
+            <p className="text-stone-400 font-bold tracking-[0.3em] uppercase text-[9px]">Distilling Intent</p>
+          </div>
+
+          <div className="flex gap-2 justify-center">
+            {loadingMessages.map((_, i) => (
               <motion.div 
                 key={i}
-                animate={{ scale: i === loadingMessageIndex ? 1.5 : 1, opacity: i === loadingMessageIndex ? 1 : 0.3 }}
-                className="w-1 h-1 rounded-full bg-natural-olive"
+                animate={{ 
+                  scale: i === loadingMessageIndex ? [1, 1.5, 1] : 1, 
+                  opacity: i === loadingMessageIndex ? 1 : 0.2,
+                  backgroundColor: i === loadingMessageIndex ? '#7c8b74' : '#d6d3d1'
+                }}
+                className="w-1.5 h-1.5 rounded-full"
               />
             ))}
           </div>
@@ -317,7 +351,7 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
                   Standard Strategy
                 </span>
               </div>
-              <ScriptCard content={suite.standard} format={inputs.contentFormat} />
+              <ScriptCard content={suite.standard} platform={inputs.platform} />
             </div>
 
             <div className="grid gap-12 relative">
@@ -376,11 +410,11 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
 
                 <div className={`transition-all duration-700 ${!isEmailSubmitted ? 'opacity-40' : ''}`}>
                   <div className="mb-4 text-[9px] font-black tracking-widest text-stone-400 uppercase">Storyteller</div>
-                  <ScriptCard content={suite.storyteller} format={inputs.contentFormat} isLocked={!isEmailSubmitted} />
+                  <ScriptCard content={suite.storyteller} platform={inputs.platform} isLocked={!isEmailSubmitted} />
                 </div>
                 <div className={`transition-all duration-700 ${!isEmailSubmitted ? 'opacity-40' : ''}`}>
                   <div className="mb-4 text-[9px] font-black tracking-widest text-stone-400 uppercase">Viral Hook</div>
-                  <ScriptCard content={suite.viral} format={inputs.contentFormat} isLocked={!isEmailSubmitted} />
+                  <ScriptCard content={suite.viral} platform={inputs.platform} isLocked={!isEmailSubmitted} />
                 </div>
               </div>
             </div>
@@ -477,7 +511,7 @@ export function ScriptSuite({ idea, inputs, onBack, userApiKey, initialSuite, is
   );
 }
 
-function ScriptCard({ content, format, isLocked = false }: { content: ScriptContent, format: string, isLocked?: boolean }) {
+function ScriptCard({ content, platform, isLocked = false }: { content: ScriptContent, platform: string, isLocked?: boolean }) {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, section: string) => {
@@ -487,27 +521,27 @@ function ScriptCard({ content, format, isLocked = false }: { content: ScriptCont
     setTimeout(() => setCopiedSection(null), 2000);
   };
 
-  const isCarousel = format === 'Carousel';
-  const isStatic = format === 'Static Post';
+  const isLongForm = platform?.includes('YouTube (long-form)') || platform?.includes('Podcast');
+  const isShort = platform?.includes('Shorts') || platform?.includes('TikTok') || platform?.includes('Reels');
 
   const sections = [
     { 
-      label: isCarousel ? 'Cover Slide (Slide 1)' : isStatic ? 'Headline' : 'The Hook', 
+      label: isShort ? 'The Hook (0-3s)' : isLongForm ? 'Intro / Hook' : 'Headline', 
       value: content.hook, 
       color: 'text-natural-olive' 
     },
     { 
-      label: isCarousel ? 'Slide Breakdown (Slides 2-7)' : isStatic ? 'The Caption' : 'The Meat', 
+      label: isLongForm ? 'Script Body' : 'The Core Message', 
       value: content.meat, 
       isList: true, 
       color: 'text-natural-ink' 
     },
     { 
-      label: isCarousel ? 'Visual Style' : isStatic ? 'Photo Composition' : 'Visual Cues', 
+      label: 'Visual Cues', 
       value: content.visuals, 
       color: 'text-stone-400 italic' 
     },
-    { label: 'The CTA', value: content.cta, color: 'text-natural-olive font-bold' },
+    { label: 'Platform-Native CTA', value: content.cta, color: 'text-natural-olive font-bold' },
     { label: 'Post Caption', value: content.caption, color: 'text-stone-500 text-xs bg-stone-50 p-4 rounded-xl border border-stone-100' },
     { label: 'Strategic Hashtags', value: content.hashtags.join(' '), color: 'text-natural-olive font-mono text-[10px]' },
   ];
@@ -517,7 +551,7 @@ function ScriptCard({ content, format, isLocked = false }: { content: ScriptCont
       {sections.map((section) => (
         <div key={section.label} className="group relative">
           <div className="flex items-center justify-between mb-3">
-            <h5 className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-300">
+            <h5 className="text-[10px] font-bold uppercase tracking-[0.1em] text-stone-500">
               {section.label}
             </h5>
             <button 
@@ -541,13 +575,13 @@ function ScriptCard({ content, format, isLocked = false }: { content: ScriptCont
               {(section.value as string[]).map((pill, i) => (
                 <li key={i} className="flex gap-3 text-sm leading-relaxed text-natural-ink">
                   <span className="text-natural-olive mt-1.5 w-1 h-1 rounded-full bg-natural-olive shrink-0" />
-                  {pill}
+                  {pill.replace(/[\[\]]/g, '')}
                 </li>
               ))}
             </ul>
           ) : (
             <p className={`text-sm leading-relaxed ${section.color} transition-all duration-700 ${isLocked ? 'blur-md select-none' : ''}`}>
-              {section.value}
+              {(section.value as string).replace(/[\[\]]/g, '')}
             </p>
           )}
         </div>

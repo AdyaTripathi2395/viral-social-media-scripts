@@ -35,33 +35,55 @@ export function IdeaSelection({ ideas, onSelect, onBack }: IdeaSelectionProps) {
       </div>
 
       <div className="grid gap-8">
-        {ideas.map((idea, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
-            onClick={() => onSelect(idea)}
-            className="group relative cursor-pointer"
-          >
-            <div className="p-10 natural-card bg-white/40 border-stone-200/50 hover:bg-white hover:border-natural-olive/30 hover:shadow-xl group-active:scale-[0.99]">
-              <div className="flex justify-between items-start mb-6">
-                <span className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full ${
-                  index % 3 === 0 ? 'bg-amber-50 text-amber-600' : 
-                  index % 3 === 1 ? 'bg-natural-olive/10 text-natural-olive' : 
-                  'bg-stone-100 text-stone-500'
-                }`}>
-                  {idea.label}
-                </span>
-                <div className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center group-hover:border-natural-olive/30 group-hover:bg-natural-olive group-hover:text-white transition-all">
-                  <ChevronRight className="w-5 h-5" />
+        {ideas.length > 0 ? (
+          ideas.map((idea, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ 
+                delay: index * 0.2, 
+                duration: 1, 
+                ease: [0.19, 1, 0.22, 1] 
+              }}
+              onClick={() => onSelect(idea)}
+              className="group relative cursor-pointer"
+            >
+              <div className="p-10 natural-card bg-white/40 border-stone-200/50 hover:bg-white hover:border-natural-olive/30 hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ delay: index * 0.2 + 0.5, duration: 1 }}
+                  className="absolute top-0 left-0 h-[2px] bg-natural-olive/20"
+                />
+                <div className="flex justify-between items-start mb-6">
+                  <span className={`px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full ${
+                    index % 3 === 0 ? 'bg-amber-50 text-amber-600' : 
+                    index % 3 === 1 ? 'bg-natural-olive/10 text-natural-olive' : 
+                    'bg-stone-100 text-stone-500'
+                  }`}>
+                    {idea.label}
+                  </span>
+                  <div className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center group-hover:border-natural-olive/30 group-hover:bg-natural-olive group-hover:text-white transition-all">
+                    <ChevronRight className="w-5 h-5" />
+                  </div>
                 </div>
+                <h3 className="text-2xl font-light mb-4 text-natural-ink group-hover:translate-x-1 transition-transform">{idea.title}</h3>
+                <p className="text-stone-500 text-sm leading-relaxed max-w-2xl">{idea.description}</p>
               </div>
-              <h3 className="text-2xl font-light mb-4 text-natural-ink group-hover:translate-x-1 transition-transform">{idea.title}</h3>
-              <p className="text-stone-500 text-sm leading-relaxed max-w-2xl">{idea.description}</p>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))
+        ) : (
+          <div className="text-center py-20 space-y-6">
+            <p className="text-stone-400 italic">The creative oracle was silent. Try refining your inputs for more clarity.</p>
+            <button 
+              onClick={onBack}
+              className="px-8 py-3 bg-natural-ink text-white rounded-full text-xs font-bold uppercase tracking-widest"
+            >
+              Refine Strategy
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

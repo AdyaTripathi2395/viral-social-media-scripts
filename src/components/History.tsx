@@ -89,7 +89,7 @@ export function History({ onSelect, onBack }: HistoryProps) {
                     {new Date(item.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div className="w-1 h-1 bg-stone-200 rounded-full" />
-                  <span className="text-[10px] text-stone-400 uppercase tracking-widest">{item.inputs.contentFormat}</span>
+                  <span className="text-[10px] text-stone-400 uppercase tracking-widest">{item.inputs.platform}</span>
                 </div>
               </div>
             </div>

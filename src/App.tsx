@@ -21,7 +21,7 @@ export default function App() {
   const [showHero, setShowHero] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [vibeStep, setVibeStep] = useState(0);
-  const [inputs, setInputs] = useState({ niche: '', audience: '', onCamera: '', contentFormat: '', goal: '' });
+  const [inputs, setInputs] = useState({ platform: '', topic: '', goal: '', tone: '', length: '' });
   const [logoClicks, setLogoClicks] = useState(0);
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<ContentIdea | null>(null);
@@ -32,10 +32,11 @@ export default function App() {
 
   const handleStart = () => {
     setIsTransitioning(true);
+    // Add a slight delay for the ritualistic exit
     setTimeout(() => {
       setShowHero(false);
       setIsTransitioning(false);
-    }, 400);
+    }, 600);
   };
 
   const handleVibeComplete = (vibeInputs: typeof inputs, generatedIdeas: ContentIdea[]) => {
@@ -60,7 +61,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-natural-bg text-natural-ink font-sans selection:bg-natural-olive/20">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 px-10 py-4 flex justify-between items-center bg-transparent border-b border-stone-200/50 backdrop-blur-md">
+      <nav className="fixed top-0 w-full z-50 px-6 md:px-10 py-4 flex justify-between items-center bg-transparent border-b border-stone-200/50 backdrop-blur-md">
         <div 
           className="flex items-center gap-3 cursor-pointer group" 
           onClick={() => {
@@ -73,16 +74,17 @@ export default function App() {
               setTimeout(() => setLogoClicks(0), 2000);
               setStep('vibe-check');
               setShowHero(true);
+              setPreviewHistoryItem(null);
             }
           }}
         >
           <div className="w-8 h-8 bg-natural-olive rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg shadow-natural-olive/20">
             <Waves className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-light tracking-widest uppercase">Vibe Script</span>
+          <span className="text-sm md:text-lg font-light tracking-widest uppercase">Vibe Script</span>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <button 
             onClick={() => {
               setStep('history');
@@ -102,7 +104,7 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="pt-32 pb-32 px-6 max-w-6xl mx-auto">
+      <main className="pt-32 pb-32 px-4 md:px-6 max-w-6xl mx-auto">
         <Settings 
           isOpen={isSettingsOpen} 
           onClose={() => setIsSettingsOpen(false)} 
@@ -118,30 +120,30 @@ export default function App() {
             <motion.section
               key="hero"
               initial={{ opacity: 1 }}
-              animate={{ opacity: isTransitioning ? 0 : 1 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
+              animate={{ opacity: isTransitioning ? 0 : 1, y: isTransitioning ? -20 : 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
               className="min-h-[70vh] flex flex-col items-center justify-center text-center space-y-10"
             >
               <div className="space-y-6 max-w-3xl">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.2, duration: 1, ease: [0.19, 1, 0.22, 1] }}
                 >
                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-natural-olive mb-4 block">
                     Strategic Content Design
                   </span>
-                  <h1 className="text-7xl md:text-8xl font-light tracking-tight text-natural-ink leading-[0.9]">
+                  <h1 className="text-5xl md:text-8xl font-light tracking-tight text-natural-ink leading-[0.9]">
                     Viral Scripts, <br />
                     <span className="italic font-serif">Zero Effort.</span>
                   </h1>
                 </motion.div>
                 
                 <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 1, ease: [0.19, 1, 0.22, 1] }}
                   className="text-stone-500 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto"
                 >
                   The AI strategist for modern creators. <br className="hidden md:block" />

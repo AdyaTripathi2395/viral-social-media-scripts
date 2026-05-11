@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Loader2, Info } from 'lucide-react';
+import { ArrowRight, Loader2, Info, Waves } from 'lucide-react';
 import { generateContentIdeas, ContentIdea } from '../lib/gemini';
 import { ProgressBar } from './ProgressBar';
 
@@ -15,13 +15,35 @@ interface VibeCheckProps {
 export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnswers, onStateChange }: VibeCheckProps) {
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Consulting the Creative Oracle...");
   const [cooldown, setCooldown] = useState(0);
+
+  const loadingMessages = [
+    "Consulting the Creative Oracle...",
+    "Aligning with the algorithm...",
+    "Synthesizing viral structures...",
+    "Polishing the hooks...",
+    "Finalizing the strategy..."
+  ];
+
+  useEffect(() => {
+    let interval: any;
+    if (isLoading) {
+      let i = 0;
+      interval = setInterval(() => {
+        i = (i + 1) % loadingMessages.length;
+        setLoadingMessage(loadingMessages[i]);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   const [answers, setAnswers] = useState(initialAnswers || {
-    niche: '',
-    audience: '',
-    onCamera: '',
-    contentFormat: '',
+    platform: '',
+    topic: '',
     goal: '',
+    tone: '',
+    length: '',
   });
 
   const updateAnswers = (newAnswers: any) => {
@@ -45,52 +67,76 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
 
   const steps = [
     {
-      id: 'contentFormat',
-      question: "Content Format?",
+      id: 'platform',
+      question: "Which platform is this for?",
       type: 'select',
-      options: ['Reel/Short', 'Static Post', 'Story', 'Carousel'],
-      description: "Select the primary medium for this strategy.",
-      help: "Reels for reach, Carousels for depth."
+      options: [
+        'YouTube (long-form)', 
+        'YouTube Shorts / Reels / TikTok', 
+        'LinkedIn', 
+        'Instagram / Facebook', 
+        'Podcast', 
+        'Other'
+      ],
+      description: "Drives everything: tone, length, hook style, and CTA format.",
+      help: "Platform choice determines the fundamental architecture of your script."
     },
     {
-      id: 'onCamera',
-      question: "On-Camera Style?",
-      placeholder: "e.g., Faceless, Talking Head",
-      description: "How do you prefer to show up on screen?",
-      help: "Faceless/B-roll or Face-to-camera?",
-      condition: (ans: any) => ans.contentFormat === 'Reel/Short' || ans.contentFormat === 'Story'
-    },
-    {
-      id: 'niche',
-      question: "What's your content niche?",
-      placeholder: "e.g., Tech PM, Aesthetic Beauty, SaaS",
-      description: "Define your playground. What topic do you own?",
-      help: "e.g., Tech PM, Aesthetic Beauty, SaaS."
-    },
-    {
-      id: 'audience',
-      question: "Who are we talking to?",
-      placeholder: "e.g., Small biz owners, Creators",
-      description: "Be specific. The more we know them, the better we reach them.",
-      help: "Who is this for? e.g., Small biz owners."
+      id: 'topic',
+      question: "What is your video/post about?",
+      type: 'text',
+      placeholder: "e.g., How I went from zero to 10K followers in 90 days...",
+      description: "Be specific — the more detail here, the better your script.",
+      help: "Include the core message, key takeaway, or transformation."
     },
     {
       id: 'goal',
-      question: "What's the energy today?",
-      placeholder: "e.g., Viral, Educational",
-      description: "Are we chasing sparks or building foundations?",
-      help: "Viral = broad/trending; Educational = niche authority."
+      question: "What's the desired outcome?",
+      type: 'select',
+      options: [
+        'Follow / Subscribe', 
+        'Visit a link / website', 
+        'Buy something', 
+        'Comment / engage', 
+        'Share the content', 
+        'Book a call / DM me'
+      ],
+      description: "What do you want your audience to DO after watching?",
+      help: "Your Call to Action (CTA) will be optimized for this specific goal."
+    },
+    {
+      id: 'tone',
+      question: "How would you describe your style?",
+      type: 'select',
+      options: [
+        'Educational & informative', 
+        'Conversational & casual', 
+        'Motivational & bold', 
+        'Humorous & entertaining', 
+        'Storytelling & personal', 
+        'Professional & authoritative'
+      ],
+      description: "This is the 'vibe' — what makes the output sound human.",
+      help: "Your tone ensures the script matches your personality and brand voice."
+    },
+    {
+      id: 'length',
+      question: "How long should it be?",
+      type: 'select',
+      options: [
+        'Short (15–30 seconds)', 
+        'Medium (60–90 seconds)', 
+        'Standard (3–5 minutes)', 
+        'Long (7–10 minutes)'
+      ],
+      description: "Platform-aware output sizing for maximum impact.",
+      help: "Select a duration that fits your platform and topic complexity."
     }
   ];
 
   const handleNext = async (overriddenAnswers?: any) => {
     const currentAnswers = overriddenAnswers || answers;
-    let nextStep = currentStep + 1;
-    
-    // Skip conditional steps if needed
-    while (nextStep < steps.length && steps[nextStep].condition && !steps[nextStep].condition(currentAnswers)) {
-      nextStep++;
-    }
+    const nextStep = currentStep + 1;
 
     if (nextStep < steps.length) {
       setError(null);
@@ -101,11 +147,11 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
       setError(null);
       try {
         const ideas = await generateContentIdeas(
-          currentAnswers.niche,
-          currentAnswers.audience,
-          currentAnswers.onCamera,
-          currentAnswers.contentFormat,
+          currentAnswers.platform,
+          currentAnswers.topic,
           currentAnswers.goal,
+          currentAnswers.tone,
+          currentAnswers.length,
           userApiKey
         );
         setCooldown(30);
@@ -121,18 +167,14 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
           setError(`The strategy nexus is offline (${errorMessage.substring(0, 50)}...). Please check your connection or API key.`);
         }
       } finally {
-        setIsLoading(false);
+        // We don't immediately set isLoading to false here because onComplete might navigate away
+        // But if it stays on the same page (e.g. error), we need it to be false
       }
     }
   };
 
   const handleBack = () => {
-    let prevStep = currentStep - 1;
-    
-    // Skip conditional steps if needed
-    while (prevStep >= 0 && steps[prevStep].condition && !steps[prevStep].condition(answers)) {
-      prevStep--;
-    }
+    const prevStep = currentStep - 1;
 
     if (prevStep >= 0) {
       setError(null);
@@ -227,7 +269,7 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
                   onChange={(e) => updateAnswers({ ...answers, [steps[currentStep].id]: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && isCurrentStepValid && handleNext()}
                   placeholder={steps[currentStep].placeholder}
-                  className="w-full bg-transparent border-b border-stone-200 py-6 text-2xl font-light outline-none focus:border-natural-olive transition-all placeholder:text-stone-200"
+                  className="w-full bg-transparent border-b border-stone-200 py-6 pr-16 text-2xl font-light outline-none focus:border-natural-olive transition-all placeholder:text-stone-200"
                 />
                 {isCurrentStepValid && !isLoading && (
                   <motion.button
@@ -265,16 +307,57 @@ export function VibeCheck({ onComplete, userApiKey, initialStep = 0, initialAnsw
       </AnimatePresence>
 
       {isLoading && (
-        <div className="fixed inset-0 bg-natural-bg/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center gap-6">
-          <div className="relative">
-            <Loader2 className="w-16 h-16 animate-spin text-natural-olive stroke-[1px]" />
+        <div className="fixed inset-0 bg-natural-bg/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center text-center space-y-12">
+          <div className="relative w-24 h-24">
+            <motion.div 
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1],
+                borderRadius: ["40%", "50%", "40%"]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 border-2 border-natural-olive/20"
+            />
+            <motion.div 
+              animate={{ 
+                rotate: -360,
+                scale: [1, 1.2, 1],
+                borderRadius: ["50%", "40%", "50%"]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-2 border border-natural-olive/40"
+            />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-2 h-2 bg-natural-olive rounded-full" />
+              <motion.div
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Waves className="w-8 h-8 text-natural-olive" />
+              </motion.div>
             </div>
           </div>
-          <div className="text-center space-y-1">
-            <p className="text-sm font-bold uppercase tracking-widest text-natural-ink">Consulting Oracle</p>
-            <p className="text-xs text-stone-400">Synthesizing digital frequencies...</p>
+          
+          <div className="space-y-4">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={loadingMessage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-xl font-serif italic text-natural-ink"
+              >
+                {loadingMessage}
+              </motion.p>
+            </AnimatePresence>
+            <div className="w-48 h-[1px] bg-stone-200 mx-auto relative overflow-hidden">
+              <motion.div 
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 bg-natural-olive"
+              />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-stone-400">Designing Momentum</p>
           </div>
         </div>
       )}

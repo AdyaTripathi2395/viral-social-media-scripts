@@ -30,16 +30,23 @@ const getAI = (userKey?: string) => {
 };
 
 export async function generateContentIdeas(
-  niche: string, 
-  audience: string, 
-  onCamera: string,
-  contentFormat: string,
+  platform: string, 
+  topic: string, 
   goal: string,
+  tone: string,
+  length: string,
   userKey?: string
 ): Promise<ContentIdea[]> {
-  console.log('Generating ideas for:', { niche, audience, onCamera, contentFormat, goal });
+  console.log('Generating ideas for:', { platform, topic, goal, tone, length });
   const ai = getAI(userKey);
-  const prompt = `Output JSON only. Ideas for niche ${niche}, audience ${audience}, on-camera style ${onCamera}, format ${contentFormat}, goal ${goal}. Generate 2 ideas. { "ideas": [{"label": "", "title": "", "description": ""}] }`;
+  const prompt = `Output JSON only. Create 2 distinct content ideas/angles for the following setup:
+  Platform: ${platform}
+  Topic: ${topic}
+  Goal/CTA: ${goal}
+  Tone: ${tone}
+  Length: ${length}
+
+  Output JSON matching the schema precisely.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -85,46 +92,33 @@ export async function generateContentIdeas(
 export async function generateScripts(
   ideaTitle: string, 
   ideaDescription: string, 
-  format: string,
-  onCamera: string,
+  platform: string,
+  topic: string,
+  goal: string,
+  tone: string,
+  length: string,
   userKey?: string
 ): Promise<ScriptSuite> {
-  console.log('Generating scripts for:', { ideaTitle, format, onCamera });
+  console.log('Generating scripts for:', { ideaTitle, platform, topic, goal, tone, length });
   const ai = getAI(userKey);
   
-  let structurePrompt = '';
-  if (format === 'Carousel') {
-    structurePrompt = `Each script must be structured with:
-    1. hook: Cover slide (Slide 1) headline + visual instructions.
-    2. meat: An array of 5-7 strings, each representing a slide breakdown (Slides 2 to 6/7).
-    3. visuals: General visual style and layout instructions for the carousel.
-    4. cta: Final slide (Slide 7 or 8) closing line.
-    5. caption: A ready-to-use social media caption (150-200 chars).
-    6. hashtags: An array of top 5 relevant hashtags.`;
-  } else if (format === 'Static Post') {
-    structurePrompt = `Each script must be structured with:
-    1. hook: The headline for the image.
-    2. meat: An array with 1 string containing the full social media caption.
-    3. visuals: Detailed Photo Composition Idea.
-    4. cta: A high-converting closing line.
-    5. caption: A ready-to-use social media caption (150-200 chars).
-    6. hashtags: An array of top 5 relevant hashtags.`;
-  } else {
-    structurePrompt = `Each script must be structured with:
-    1. hook: Visual + Audio instructions to stop the scroll.
-    2. meat: An array of 3-4 core bullet points of the message.
-    3. visuals: Suggestions for B-roll or movement.
-    4. cta: A high-converting closing line.
-    5. caption: A ready-to-use social media caption (150-200 chars).
-    6. hashtags: An array of top 5 relevant hashtags.`;
-  }
+  const prompt = `Write a ${length} script for ${platform} about ${topic} based on the idea "${ideaTitle}".
+  Description: ${ideaDescription}
 
-  const prompt = `Develop 3 distinct scripts (standard, storyteller, and viral) for the content idea titled "${ideaTitle}" with description "${ideaDescription}". 
-  The format is ${format} and the on-camera style is ${onCamera}. 
+  The creator's style is ${tone}.
+  The hook should be platform-native and stop the scroll in the first 3 seconds.
+  Include visual cues throughout the script (describe the B-roll or movement). DO NOT use brackets or parentheses to enclose visual cues.
+  End with a CTA that drives the audience to ${goal}.
+  
+  Do not use generic AI opener phrases like "Are you tired of..." or "In today's video..."
+  Sound like a real person, not a content template.
 
-  ${structurePrompt}
+  Output 3 versions of this script:
+  1. standard: A balanced, reliable version.
+  2. storyteller: A narrative-driven, personal version.
+  3. viral: An high-energy, algorithm-optimized version.
 
-  Output scripts in JSON.`;
+  Output in JSON.`;
 
   try {
     const scriptSchema = {

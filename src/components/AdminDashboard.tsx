@@ -26,8 +26,8 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     const emails = new Set<string>();
 
     history.forEach((item: any) => {
-      const format = item.inputs?.contentFormat || 'Other';
-      formats[format] = (formats[format] || 0) + 1;
+      const platform = item.inputs?.platform || 'Other';
+      formats[platform] = (formats[platform] || 0) + 1;
       
       if (item.feedback) {
         totalFeedback += item.feedback;
@@ -43,10 +43,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     
     // If no history, show some mock "trending" data for visual appeal
     const displayData = formatData.length > 0 ? formatData : [
-      { name: 'Reel/Short', value: 60 },
-      { name: 'Carousel', value: 25 },
-      { name: 'Static Post', value: 10 },
-      { name: 'Story', value: 5 }
+      { name: 'Shorts/TikTok', value: 60 },
+      { name: 'YouTube', value: 25 },
+      { name: 'LinkedIn', value: 10 },
+      { name: 'Podcast', value: 5 }
     ];
 
     setStats({
